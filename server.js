@@ -19,18 +19,24 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware - Relaxed Helmet for LAN development
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "cdn.socket.io", "https://cdnjs.cloudflare.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https:"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-            connectSrc: ["'self'", "ws:", "wss:"]
+            imgSrc: ["'self'", "data:", "https:", "http:"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
+            connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"]
         }
-    }
+    },
+    // Disable HSTS for local development
+    hsts: false,
+    // Disable forced HTTPS upgrade
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false
 }));
 
 app.use(cors());
