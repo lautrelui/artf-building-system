@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARTF Building System - DEMO Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --sidebar-width: 280px;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            color: white;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .connection-status i {
+            font-size: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            color: var(--secondary);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            background: var(--danger);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background: var(--light);
+        }
+
+        .content-header {
+            background: white;
+            padding: 2rem 3rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
+        }
+
+        .content-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .content-header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.primary { background: var(--primary); }
+        .stat-icon.success { background: var(--success); }
+        .stat-icon.warning { background: var(--warning); }
+        .stat-icon.danger { background: var(--danger); }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .stat-trend.up { color: var(--success); }
+
+        /* Demo Section */
+        .demo-section {
+            padding: 2rem 3rem;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .demo-card p {
+            color: var(--secondary);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .feature-item i {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-item h4 {
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .feature-item p {
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary);
+            color: #1e40af;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid var(--success);
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-building-shield"></i>
+                <span>ARTF Building</span>
+            </div>
+            <div class="connection-status">
+                <i class="fas fa-circle"></i>
+                <span>Connecté</span>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Tableau de Bord</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    <span>Documentation</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-server"></i>
+                    <span>Équipements</span>
+                    <span class="nav-badge">25</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Supervision</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Rapports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-robot"></i>
+                    <span>Assistant IA</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="content-header">
+            <h1>Tableau de Bord ARTF</h1>
+            <p>Vue d'ensemble du système de gestion du bâtiment intelligent</p>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-server"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>25</h3>
+                    <p>Équipements Totaux</p>
+                </div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    12%
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>45.5 kW</h3>
+                    <p>Consommation Totale</p>
+                </div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-down"></i>
+                    5%
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>5</h3>
+                    <p>Étages Équipés</p>
+                </div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    100%
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>98%</h3>
+                    <p>Disponibilité</p>
+                </div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    2%
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Section -->
+        <div class="demo-section">
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>✨ Design Moderne Actif!</strong><br>
+                    Vous voyez maintenant la nouvelle interface du système ARTF avec UI/UX améliorée
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <h2><i class="fas fa-palette"></i> Nouvelles Fonctionnalités UI/UX</h2>
+                <p>Cette démo présente le nouveau design moderne de l'application ARTF Building System. Voici les améliorations majeures :</p>
+
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-paint-brush"></i>
+                        <h4>Design Moderne</h4>
+                        <p>Interface épurée avec gradients et animations fluides</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        <h4>Responsive</h4>
+                        <p>Adapté à tous les écrans (mobile, tablette, desktop)</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-bolt"></i>
+                        <h4>Temps Réel</h4>
+                        <p>WebSocket pour les mises à jour en direct</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-robot"></i>
+                        <h4>IA Intégrée</h4>
+                        <p>Assistant DeepSeek pour répondre aux questions</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Tableaux de Bord</h4>
+                        <p>Statistiques visuelles et graphiques interactifs</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-file-excel"></i>
+                        <h4>Export Excel/JSON</h4>
+                        <p>Export complet des données avec filtres</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-book"></i>
+                        <h4>Documentation</h4>
+                        <p>Navigation structurée avec recherche intégrée</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Sécurité</h4>
+                        <p>Protection contre la copie et validation des entrées</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <h2><i class="fas fa-rocket"></i> Pour Lancer l'Application Complète</h2>
+                <p>Cette démo montre uniquement le design. Pour utiliser toutes les fonctionnalités :</p>
+                <ol style="line-height: 2; margin-left: 1.5rem; color: var(--dark);">
+                    <li><strong>Configurez l'environnement:</strong> Éditez le fichier <code>.env</code> avec votre clé API DeepSeek</li>
+                    <li><strong>Configurez la base de données:</strong> Installez MySQL et exécutez <code>database/init.sql</code></li>
+                    <li><strong>Installez les dépendances:</strong> Exécutez <code>npm install</code></li>
+                    <li><strong>Démarrez l'application:</strong> Exécutez <code>npm start</code></li>
+                    <li><strong>Accédez à:</strong> <code>http://localhost:3000</code></li>
+                </ol>
+                <br>
+                <a href="#" class="btn btn-primary">
+                    <i class="fas fa-book"></i>
+                    Voir le Guide Complet (README.md)
+                </a>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>💡 Astuce:</strong> Consultez le fichier <code>QUICKSTART.md</code> pour un guide détaillé d'installation et de configuration pas à pas.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
