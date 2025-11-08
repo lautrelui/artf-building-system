@@ -412,11 +412,11 @@ class ARTFApp {
     updateDashboardStats() {
         const totalEquipment = this.equipment.length;
         const totalPower = this.equipment.reduce((sum, item) => sum + (item.power_consumption || 0), 0);
-        
+
         // Update stats cards
         const totalElement = document.getElementById('total-equipment');
         const powerElement = document.getElementById('total-power');
-        
+
         if (totalElement) totalElement.textContent = totalEquipment;
         if (powerElement) powerElement.textContent = `${totalPower} W`;
 
@@ -425,6 +425,50 @@ class ARTFApp {
 
         // Update recent equipment list
         this.updateRecentEquipment();
+
+        // Update floor distribution
+        this.updateFloorDistribution();
+    }
+
+    updateFloorDistribution() {
+        const distributionContainer = document.getElementById('floor-distribution');
+        if (!distributionContainer) return;
+
+        // Group equipment by floor
+        const floorData = {};
+        this.equipment.forEach(item => {
+            if (!floorData[item.floor]) {
+                floorData[item.floor] = 0;
+            }
+            floorData[item.floor]++;
+        });
+
+        // Find max count for scaling
+        const maxCount = Math.max(...Object.values(floorData), 1);
+
+        // Sort floors
+        const sortedFloors = Object.keys(floorData).sort((a, b) => parseInt(a) - parseInt(b));
+
+        // Generate HTML
+        const floorHTML = sortedFloors.map(floor => {
+            const count = floorData[floor];
+            const percentage = (count / maxCount) * 100;
+            const floorLabel = floor === '-1' ? 'Sous-sol' : (floor === '0' ? 'RDC' : `Étage ${floor}`);
+
+            return `
+                <div class="floor-item">
+                    <div class="floor-label">${floorLabel}</div>
+                    <div class="floor-bar-container">
+                        <div class="floor-bar" style="width: ${percentage}%">
+                            ${count > 0 ? count : ''}
+                        </div>
+                    </div>
+                    <div class="floor-count">${count}</div>
+                </div>
+            `;
+        }).join('');
+
+        distributionContainer.innerHTML = floorHTML || '<p class="text-muted">Aucune donnée disponible</p>';
     }
 
     updateEquipmentCount() {
