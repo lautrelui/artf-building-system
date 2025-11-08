@@ -68,6 +68,7 @@ const chatRoutes = require('./routes/chat');
 const equipmentRoutes = require('./routes/equipment');
 const uploadRoutes = require('./routes/upload');
 const exportRoutes = require('./routes/export');
+const documentRoutes = require('./routes/document');
 
 // Use routes
 app.use('/', indexRoutes);
@@ -75,6 +76,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/document', documentRoutes);
 
 // Prevent copy-paste middleware
 app.use((req, res, next) => {
