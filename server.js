@@ -41,9 +41,8 @@ if (process.env.NODE_ENV === 'production') {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
-// Session configuration
+// Session configuration (must be before routes)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'artf-building-secret',
     resave: false,
@@ -88,6 +87,17 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// Serve public static files (CSS, JS, images) but not HTML
+app.use(express.static('public', {
+    index: false,  // Don't serve index.html automatically
+    setHeaders: (res, path) => {
+        // Allow CSS, JS, images, fonts
+        if (path.endsWith('.html') && !path.endsWith('login.html')) {
+            res.status(404).end(); // Block HTML files except login
+        }
+    }
+}));
+
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
     // Skip auth for public paths
@@ -97,6 +107,11 @@ app.use((req, res, next) => {
 
     // Require authentication
     requireAuth(req, res, next);
+});
+
+// Serve main app (protected)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Protected routes (require authentication)
