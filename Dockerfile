@@ -2,28 +2,25 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install --production
 # Install netcat for wait loop
 RUN apk add --no-cache netcat-openbsd
 
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (using npm ci for cleaner install)
 RUN npm ci --only=production
 
 # Copy source code
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p public/uploads
+# Create necessary directories
+RUN mkdir -p public/uploads data
 
 # Set permissions
 RUN chown -R node:node /app
-USER node
 
-# Create necessary directories
-RUN mkdir -p public/uploads data
+USER node
 
 EXPOSE 3000
 

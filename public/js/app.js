@@ -765,8 +765,12 @@ class ARTFApp {
             if (e.target.classList.contains('nav-link')) {
                 e.preventDefault();
                 const sectionId = e.target.getAttribute('data-section');
+
+                // Ensure documentation section is visible
+                this.showSection('documentation');
+
                 this.loadDocumentationSection(sectionId);
-                
+
                 // Update active state
                 document.querySelectorAll('.docs-nav .nav-link').forEach(link => {
                     link.classList.remove('active');
@@ -853,6 +857,26 @@ class ARTFApp {
         const messagesContainer = document.getElementById('chat-messages');
         if (!messagesContainer) return;
 
+        // Format the content: convert newlines to <br>, preserve formatting
+        let formattedContent = content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n\n/g, '</p><p>')  // Double newline = new paragraph
+            .replace(/\n/g, '<br>')        // Single newline = line break
+            // Basic markdown support
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')              // Italic
+            .replace(/`(.*?)`/g, '<code>$1</code>')             // Code
+            // Lists
+            .replace(/^- (.*?)(<br>|$)/gm, '<li>$1</li>')       // List items
+            .replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');        // Wrap in ul
+
+        // Wrap in paragraph if not already wrapped
+        if (!formattedContent.startsWith('<p>')) {
+            formattedContent = '<p>' + formattedContent + '</p>';
+        }
+
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
         messageDiv.innerHTML = `
@@ -860,11 +884,11 @@ class ARTFApp {
                 <i class="fas fa-${sender === 'user' ? 'user' : 'robot'}"></i>
             </div>
             <div class="message-content">
-                <div class="message-text">${content}</div>
+                <div class="message-text">${formattedContent}</div>
                 <div class="message-time">${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
             </div>
         `;
-        
+
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -993,3 +1017,55 @@ function exportToJSON() {
         window.app.exportToJSON();
     }
 }
+
+// Authentication functions
+async function logout() {
+    try {
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            alert('Erreur lors de la déconnexion');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('Erreur lors de la déconnexion');
+    }
+}
+
+// Check authentication status on page load
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+
+        if (data.authenticated && data.user) {
+            // Update user info in sidebar
+            const userNameEl = document.getElementById('user-name');
+            const userRoleEl = document.getElementById('user-role');
+
+            if (userNameEl) {
+                userNameEl.textContent = data.user.full_name || data.user.username;
+            }
+            if (userRoleEl) {
+                const roleNames = {
+                    'admin': 'Administrateur',
+                    'user': 'Utilisateur',
+                    'viewer': 'Observateur'
+                };
+                userRoleEl.textContent = roleNames[data.user.role] || 'Système ARTF';
+            }
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+    }
+}
+
+// Call checkAuth on load
+checkAuth();

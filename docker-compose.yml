@@ -27,7 +27,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DB_HOST: mysql
       DB_PORT: 3306          # ✅ explicit
       DB_USER: artf_user
@@ -41,7 +41,7 @@ services:
     volumes:
       - ./public/uploads:/app/public/uploads
       - ./data:/app/data
-    restart: unless-stopped  
+    restart: unless-stopped
     command: >
       sh -c "
       until nc -z mysql 3306; do
