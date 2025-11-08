@@ -1,0 +1,54 @@
+# version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: artf_building
+      MYSQL_USER: artf_user
+      MYSQL_PASSWORD: artf_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    # ✅ healthcheck so Compose knows when MySQL is actually ready
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 20    
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306          # ✅ explicit
+      DB_USER: artf_user
+      DB_PASSWORD: artf_password
+      DB_NAME: artf_building
+      SESSION_SECRET: t?o?g<?p,???x?4?????AWy????
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_API_URL: https://api.deepseek.com/v1/chat/completions
+    depends_on:
+      - mysql
+    volumes:
+      - ./public/uploads:/app/public/uploads
+      - ./data:/app/data
+    restart: unless-stopped  
+    command: >
+      sh -c "
+      until nc -z mysql 3306; do
+        echo 'waiting for mysql...'; sleep 2;
+      done;
+      node server.js"
+
+
+volumes:
+  mysql_data:

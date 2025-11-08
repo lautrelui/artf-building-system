@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARTF - Système de Gestion du Bâtiment Intelligent</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-building-shield"></i>
+                <span>ARTF Building</span>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <i class="fas fa-circle"></i>
+                <span>Connecté</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li class="nav-item active">
+                <a href="#dashboard" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Tableau de Bord</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#documentation" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    <span>Documentation</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#equipment" class="nav-link">
+                    <i class="fas fa-server"></i>
+                    <span>Équipements</span>
+                    <span class="nav-badge" id="equipment-count">0</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#supervision" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Supervision</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#reports" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Rapports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#assistant" class="nav-link">
+                    <i class="fas fa-robot"></i>
+                    <span>Assistant IA</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Administrateur</span>
+                    <span class="user-role">Système ARTF</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="content-header">
+            <div class="header-left">
+                <h1 id="page-title">Tableau de Bord</h1>
+                <p id="page-subtitle">Vue d'ensemble du système de gestion du bâtiment</p>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="quick-add-btn">
+                        <i class="fas fa-plus"></i>
+                        Nouvel Équipement
+                    </button>
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-equipment">0</h3>
+                        <p>Équipements Totaux</p>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i>
+                        12%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-power">0 W</h3>
+                        <p>Consommation Totale</p>
+                    </div>
+                    <div class="stat-trend down">
+                        <i class="fas fa-arrow-down"></i>
+                        5%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>9</h3>
+                        <p>Étages Équipés</p>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i>
+                        100%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="maintenance-count">2</h3>
+                        <p>Maintenances Requises</p>
+                    </div>
+                    <div class="stat-trend neutral">
+                        <i class="fas fa-minus"></i>
+                        0%
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card recent-equipment">
+                    <div class="card-header">
+                        <h3>Équipements Récents</h3>
+                        <a href="#equipment" class="view-all">Voir tout</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="equipment-list" id="recent-equipment-list">
+                            <!-- Recent equipment will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card floor-distribution">
+                    <div class="card-header">
+                        <h3>Répartition par Étage</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="distribution-chart" id="floor-distribution">
+                            <!-- Distribution chart will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card quick-actions">
+                    <div class="card-header">
+                        <h3>Actions Rapides</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="app.switchSection('equipment')">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Ajouter Équipement</span>
+                            </button>
+                            <button class="action-btn" onclick="app.exportToExcel()">
+                                <i class="fas fa-file-excel"></i>
+                                <span>Exporter Excel</span>
+                            </button>
+                            <button class="action-btn" onclick="app.switchSection('assistant')">
+                                <i class="fas fa-robot"></i>
+                                <span>Assistant IA</span>
+                            </button>
+                            <button class="action-btn" onclick="app.switchSection('reports')">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Rapports</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Documentation Section -->
+        <section id="documentation" class="content-section">
+            <div class="section-header">
+                <h2>Documentation Technique</h2>
+                <p>Documentation complète du projet de bâtiment intelligent ARTF</p>
+            </div>
+            
+            <div class="docs-container">
+                <div class="docs-sidebar">
+                    <div class="docs-search">
+                        <input type="text" placeholder="Rechercher dans la documentation..." id="docs-search">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <nav class="docs-nav">
+                        <div class="nav-group">
+                            <h4>Architecture Générale</h4>
+                            <a href="#doc-intro" class="nav-link active" data-section="introduction">Introduction</a>
+                            <a href="#doc-noc" class="nav-link" data-section="noc-datacenter">NOC & Data Center</a>
+                        </div>
+                        <div class="nav-group">
+                            <h4>Infrastructure</h4>
+                            <a href="#doc-cti" class="nav-link" data-section="cti-repatriement">CTI & Réseau</a>
+                            <a href="#doc-smart" class="nav-link" data-section="smart-building">Smart Building</a>
+                            <a href="#doc-energy" class="nav-link" data-section="energy">Énergie</a>
+                        </div>
+                    </nav>
+                </div>
+                
+                <div class="docs-content">
+                    <div class="docs-article" id="docs-article">
+                        <!-- Documentation content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Equipment Management Section -->
+        <section id="equipment" class="content-section">
+            <div class="section-header">
+                <h2>Gestion des Équipements</h2>
+                <p>Gérez l'inventaire complet des équipements du bâtiment</p>
+            </div>
+
+            <!-- Equipment Tabs -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="equipment-list">
+                        <i class="fas fa-list"></i>
+                        Liste des Équipements
+                    </button>
+                    <button class="tab-btn" data-tab="equipment-add">
+                        <i class="fas fa-plus"></i>
+                        Ajouter Équipement
+                    </button>
+                    <button class="tab-btn" data-tab="equipment-files">
+                        <i class="fas fa-file-upload"></i>
+                        Fichiers
+                    </button>
+                </div>
+
+                <!-- Equipment List Tab -->
+                <div class="tab-content active" id="equipment-list">
+                    <div class="toolbar">
+                        <div class="filters">
+                            <select id="floor-filter" class="filter-select">
+                                <option value="">Tous les étages</option>
+                            </select>
+                            <select id="type-filter" class="filter-select">
+                                <option value="">Tous les types</option>
+                            </select>
+                            <select id="status-filter" class="filter-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="Planned">Planifié</option>
+                                <option value="Installed">Installé</option>
+                                <option value="Operational">Opérationnel</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button class="btn btn-secondary" onclick="app.exportToExcel()">
+                                <i class="fas fa-file-excel"></i>
+                                Exporter
+                            </button>
+                            <button class="btn btn-primary" onclick="app.refreshEquipment()">
+                                <i class="fas fa-sync-alt"></i>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Marque/Modèle</th>
+                                    <th>Étage</th>
+                                    <th>Local</th>
+                                    <th>Puissance</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="equipment-tbody">
+                                <!-- Equipment data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Equipment Tab -->
+                <div class="tab-content" id="equipment-add">
+                    <div class="form-container">
+                        <form id="equipment-form" class="modern-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="type">Type d'Équipement *</label>
+                                    <select id="type" name="type" required>
+                                        <option value="">Sélectionnez un type</option>
+                                        <option value="Serveur">Serveur</option>
+                                        <option value="Switch">Switch Réseau</option>
+                                        <option value="UPS">Onduleur (UPS)</option>
+                                        <option value="PDU">PDU Intelligent</option>
+                                        <option value="CCTV">Caméra CCTV</option>
+                                        <option value="Climate">Unité de Climatisation</option>
+                                        <option value="Capteur">Capteur IoT</option>
+                                        <option value="Automate">Automate</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="brand">Marque *</label>
+                                    <input type="text" id="brand" name="brand" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="model">Modèle *</label>
+                                    <input type="text" id="model" name="model" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="serialNumber">Numéro de Série</label>
+                                    <input type="text" id="serialNumber" name="serialNumber">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="floor">Étage *</label>
+                                    <select id="floor" name="floor" required>
+                                        <option value="">Sélectionnez</option>
+                                        <option value="-1">Sous-sol (-1)</option>
+                                        <option value="0">Rez-de-chaussée</option>
+                                        <option value="3">3ème étage (NOC/DC)</option>
+                                        <option value="10">Toit (Roof POP)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="room">Local/Salle *</label>
+                                    <input type="text" id="room" name="room" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="powerConsumption">Consommation (W) *</label>
+                                    <input type="number" id="powerConsumption" name="powerConsumption" required min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="voltage">Tension (V)</label>
+                                    <input type="number" id="voltage" name="voltage" value="220" min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Protocoles Supportés</h4>
+                                <div class="protocols-grid">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="SNMP">
+                                        <span class="checkmark"></span>
+                                        SNMP
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="MODBUS">
+                                        <span class="checkmark"></span>
+                                        MODBUS
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="BACnet">
+                                        <span class="checkmark"></span>
+                                        BACnet
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="KNX">
+                                        <span class="checkmark"></span>
+                                        KNX
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="MQTT">
+                                        <span class="checkmark"></span>
+                                        MQTT
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="protocols" value="ONVIF">
+                                        <span class="checkmark"></span>
+                                        ONVIF
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save"></i>
+                                    Ajouter l'Équipement
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    Réinitialiser
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Files Tab -->
+                <div class="tab-content" id="equipment-files">
+                    <div class="files-container">
+                        <div class="upload-section">
+                            <h4>Uploader un Fichier</h4>
+                            <form id="file-upload-form" class="upload-form" enctype="multipart/form-data">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="file-equipment">Équipement *</label>
+                                        <select id="file-equipment" name="equipmentId" required>
+                                            <option value="">Sélectionnez un équipement</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="file-description">Description</label>
+                                        <input type="text" id="file-description" name="description" placeholder="Description du fichier">
+                                    </div>
+                                </div>
+                                <div class="file-input-container">
+                                    <input type="file" id="file-input" name="file" required>
+                                    <label for="file-input" class="file-input-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Choisir un fichier</span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i>
+                                    Uploader le Fichier
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="files-list-section">
+                            <h4>Fichiers Associés</h4>
+                            <div class="files-grid" id="files-grid">
+                                <!-- Files will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Assistant Section -->
+        <section id="assistant" class="content-section">
+            <div class="section-header">
+                <h2>Assistant Technique IA</h2>
+                <p>Obtenez des réponses instantanées sur le projet ARTF</p>
+            </div>
+
+            <div class="assistant-container">
+                <div class="chat-header">
+                    <div class="assistant-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="assistant-info">
+                        <h3>Assistant ARTF</h3>
+                        <p>Spécialiste du bâtiment intelligent</p>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="btn btn-secondary" id="clear-chat">
+                            <i class="fas fa-trash"></i>
+                            Effacer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Bonjour ! Je suis l'assistant technique du projet ARTF. Je peux vous aider avec des informations sur le NOC, Data Center, CTI, Smart Building, et l'architecture réseau. Comment puis-je vous assister aujourd'hui ?
+                            </div>
+                            <div class="message-time">Maintenant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="chat-input">
+                        <input type="text" id="chat-input" placeholder="Posez votre question sur le projet ARTF..." 
+                               oncopy="return false" onpaste="return false" oncut="return false">
+                        <button id="send-button" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="chat-suggestions">
+                        <span class="suggestion-label">Suggestions :</span>
+                        <button class="suggestion-chip" data-question="Quelles sont les spécifications du Data Center ?">
+                            Spécifications Data Center
+                        </button>
+                        <button class="suggestion-chip" data-question="Comment fonctionne la redondance électrique ?">
+                            Redondance électrique
+                        </button>
+                        <button class="suggestion-chip" data-question="Quels protocoles sont supportés par le système GTB ?">
+                            Protocoles GTB
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="content-section">
+            <div class="section-header">
+                <h2>Rapports & Exportations</h2>
+                <p>Générez des rapports détaillés et exportez vos données</p>
+            </div>
+
+            <div class="reports-container">
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <div class="report-icon">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div class="report-content">
+                            <h3>Export Excel Complet</h3>
+                            <p>Exportez tous les équipements vers un fichier Excel avec onglets multiples et métriques détaillées</p>
+                            <button class="btn btn-success" onclick="app.exportToExcel()">
+                                <i class="fas fa-download"></i>
+                                Exporter Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <div class="report-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="report-content">
+                            <h3>Export JSON</h3>
+                            <p>Exportez les données au format JSON pour traitement externe et intégrations API</p>
+                            <button class="btn btn-primary" onclick="app.exportToJSON()">
+                                <i class="fas fa-download"></i>
+                                Exporter JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <div class="report-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="report-content">
+                            <h3>Rapport d'Analyse</h3>
+                            <p>Générez un rapport détaillé avec analyses statistiques et tendances de consommation</p>
+                            <button class="btn btn-warning">
+                                <i class="fas fa-chart-bar"></i>
+                                Générer Rapport
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-filters">
+                    <h4>Filtres d'Export</h4>
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="export-floor">Étage</label>
+                            <select id="export-floor">
+                                <option value="">Tous les étages</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="export-type">Type d'Équipement</label>
+                            <select id="export-type">
+                                <option value="">Tous les types</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="export-status">Statut</label>
+                            <select id="export-status">
+                                <option value="">Tous les statuts</option>
+                                <option value="Planned">Planifié</option>
+                                <option value="Installed">Installé</option>
+                                <option value="Operational">Opérationnel</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Modifier l'Équipement</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Edit form will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-cog fa-spin"></i>
+            <p>Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
