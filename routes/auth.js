@@ -6,26 +6,38 @@ const { v4: uuidv4 } = require('uuid');
 
 // Login route
 router.post('/login', async (req, res) => {
+    console.log('🔐 Login attempt received:', { username: req.body.username, hasPassword: !!req.body.password });
+
     const { username, password } = req.body;
 
     if (!username || !password) {
+        console.log('❌ Missing username or password');
         return res.status(400).json({ error: 'Username and password are required' });
     }
 
     try {
+        console.log('🔍 Searching for user:', username);
         const [users] = await db.execute(
             'SELECT * FROM users WHERE username = ? AND is_active = TRUE',
             [username]
         );
 
+        console.log('👤 Users found:', users.length);
+
         if (users.length === 0) {
+            console.log('❌ No user found with username:', username);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = users[0];
+        console.log('🔑 Checking password for user:', user.username);
+        console.log('📝 Stored hash starts with:', user.password.substring(0, 20));
+
         const isValidPassword = await bcrypt.compare(password, user.password);
+        console.log('✅ Password valid:', isValidPassword);
 
         if (!isValidPassword) {
+            console.log('❌ Invalid password for user:', username);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
