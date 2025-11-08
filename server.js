@@ -68,7 +68,11 @@ io.on('connection', (socket) => {
 // Make io accessible to routes
 app.set('io', io);
 
+// Import middleware
+const { requireAuth, isPublicPath } = require('./middleware/auth');
+
 // Import routes
+const authRoutes = require('./routes/auth');
 const indexRoutes = require('./routes/index');
 const chatRoutes = require('./routes/chat');
 const equipmentRoutes = require('./routes/equipment');
@@ -76,7 +80,26 @@ const uploadRoutes = require('./routes/upload');
 const exportRoutes = require('./routes/export');
 const documentRoutes = require('./routes/document');
 
-// Use routes
+// Public routes (no authentication required)
+app.use('/api/auth', authRoutes);
+
+// Serve login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Authentication middleware for all other routes
+app.use((req, res, next) => {
+    // Skip auth for public paths
+    if (isPublicPath(req.path)) {
+        return next();
+    }
+
+    // Require authentication
+    requireAuth(req, res, next);
+});
+
+// Protected routes (require authentication)
 app.use('/', indexRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/equipment', equipmentRoutes);

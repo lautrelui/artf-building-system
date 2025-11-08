@@ -765,8 +765,12 @@ class ARTFApp {
             if (e.target.classList.contains('nav-link')) {
                 e.preventDefault();
                 const sectionId = e.target.getAttribute('data-section');
+
+                // Ensure documentation section is visible
+                this.showSection('documentation');
+
                 this.loadDocumentationSection(sectionId);
-                
+
                 // Update active state
                 document.querySelectorAll('.docs-nav .nav-link').forEach(link => {
                     link.classList.remove('active');
@@ -993,3 +997,55 @@ function exportToJSON() {
         window.app.exportToJSON();
     }
 }
+
+// Authentication functions
+async function logout() {
+    try {
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            alert('Erreur lors de la déconnexion');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('Erreur lors de la déconnexion');
+    }
+}
+
+// Check authentication status on page load
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+
+        if (data.authenticated && data.user) {
+            // Update user info in sidebar
+            const userNameEl = document.getElementById('user-name');
+            const userRoleEl = document.getElementById('user-role');
+
+            if (userNameEl) {
+                userNameEl.textContent = data.user.full_name || data.user.username;
+            }
+            if (userRoleEl) {
+                const roleNames = {
+                    'admin': 'Administrateur',
+                    'user': 'Utilisateur',
+                    'viewer': 'Observateur'
+                };
+                userRoleEl.textContent = roleNames[data.user.role] || 'Système ARTF';
+            }
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+    }
+}
+
+// Call checkAuth on load
+checkAuth();

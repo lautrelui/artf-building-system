@@ -51,6 +51,22 @@ CREATE TABLE chat_messages (
     INDEX idx_created (created_at)
 );
 
+-- Users table for authentication
+CREATE TABLE users (
+    id VARCHAR(36) PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    email VARCHAR(100),
+    role ENUM('admin', 'user', 'viewer') DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_role (role)
+);
+
 -- Insert sample data
 INSERT INTO equipment (id, type, brand, model, floor, room, power_consumption, voltage, protocols, status) VALUES
 (UUID(), 'Serveur', 'Dell', 'PowerEdge R750', 3, 'Salle Serveurs A', 800, 220, '["SNMP", "IPMI"]', 'Planned'),
